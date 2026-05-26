@@ -81,29 +81,21 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
-  participant UI as UI
-  participant API as FastAPI
-  participant Orch as Orchestrator
-  participant Redis as Redis
-  participant PG as PostgreSQL
-  participant LLM as Groq
+  participant UI
+  participant API
+  participant Orchestrator
+  participant Redis
+  participant PostgreSQL
+  participant LLM
 
   UI->>API: POST /api/executions
-  UI->>API: WebSocket connect
-  API->>PG: set execution status running
-  Orch->>Orch: validate and topological sort
-  loop each node in DAG order
-    Orch->>Redis: set node state TTL 3600s
-    Orch->>LLM: call LLM node
-    Orch->>UI: node_update status output error duration
-    alt node failed
-      Orch->>PG: update execution failed
-      Orch->>UI: execution failed
-      break
-    end
-  end
-  Orch->>PG: update execution completed
-  Orch->>UI: execution completed final output
+  UI->>API: WS connect to /ws/executions
+  API->>PostgreSQL: execution running
+  Orchestrator->>Redis: save node state
+  Orchestrator->>LLM: call LLM node
+  Orchestrator->>UI: node_update
+  Orchestrator->>PostgreSQL: execution completed
+  Orchestrator->>UI: execution_completed
 ```
 
 ## Project structure
