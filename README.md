@@ -67,7 +67,8 @@ npm run dev
 
 ```mermaid
 flowchart LR
-  U["Browser UI"] -->|REST save load| API["FastAPI backend"]
+  U["Browser UI"] -->|REST save load workflows| API["FastAPI backend"]
+  U -->|REST create execution| API
   U -->|WebSocket stream updates| WS["WebSocket endpoint"]
   API --> Orch["Workflow orchestrator"]
   Orch --> Redis["Redis node state cache"]
@@ -87,14 +88,19 @@ sequenceDiagram
   participant Redis
   participant PostgreSQL
   participant LLM
+  participant Tavily
+  participant E2B
 
   UI->>API: POST /api/executions
   UI->>API: WS connect to /ws/executions
   API->>PostgreSQL: execution running
+  Orchestrator->>Orchestrator: validate and topological sort
   Orchestrator->>Redis: save node state
   Orchestrator->>LLM: call LLM node
+  Orchestrator->>Tavily: call Web Search node if present
+  Orchestrator->>E2B: run Code Executor node if present
   Orchestrator->>UI: node_update
-  Orchestrator->>PostgreSQL: execution completed
+  Orchestrator->>PostgreSQL: set execution completed or failed
   Orchestrator->>UI: execution_completed
 ```
 
