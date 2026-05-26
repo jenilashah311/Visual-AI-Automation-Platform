@@ -102,6 +102,7 @@ sequenceDiagram
   Orchestrator->>UI: node_update
   Orchestrator->>PostgreSQL: set execution completed or failed
   Orchestrator->>UI: execution_completed
+  Orchestrator->>UI: execution_failed (if any node fails)
 ```
 
 ## Project structure
