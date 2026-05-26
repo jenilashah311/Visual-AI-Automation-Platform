@@ -67,14 +67,14 @@ npm run dev
 
 ```mermaid
 flowchart LR
-  U["Browser UI<br/>React + React Flow"] -->|REST (save/load)| API["FastAPI backend"]
-  U -->|WebSocket (stream node updates)| WS["WebSocket<br/>/ws/executions/{id}"]
-  API --> Orch["Workflow Orchestrator"]
-  Orch --> Redis["Redis<br/>node state cache"]
-  Orch --> PG["PostgreSQL<br/>workflows + executions"]
-  Orch --> LLM["Groq LLM (LLM nodes)"]
-  Orch --> Tavily["Tavily (Web Search nodes)"]
-  Orch --> E2B["E2B sandbox (Code Executor nodes)"]
+  U["Browser UI"] -->|REST save load| API["FastAPI backend"]
+  U -->|WebSocket stream updates| WS["WebSocket endpoint"]
+  API --> Orch["Workflow orchestrator"]
+  Orch --> Redis["Redis node state cache"]
+  Orch --> PG["PostgreSQL workflows and executions"]
+  Orch --> LLM["Groq LLM"]
+  Orch --> Tavily["Tavily web search"]
+  Orch --> E2B["E2B sandbox"]
 ```
 
 ### Execution flow
@@ -88,22 +88,22 @@ sequenceDiagram
   participant PG as PostgreSQL
   participant LLM as Groq
 
-  UI->>API: POST /api/executions (pending)
-  UI->>API: WebSocket connect /ws/executions/{id}
-  API->>PG: set execution status to running
-  Orch->>Orch: validate + topological sort
-  loop for each node in DAG order
-    Orch->>Redis: set node state (TTL 3600s)
-    Orch->>LLM: call LLM node (if present)
-    Orch->>UI: node_update (status/output/error/duration)
+  UI->>API: POST /api/executions
+  UI->>API: WebSocket connect
+  API->>PG: set execution status running
+  Orch->>Orch: validate and topological sort
+  loop each node in DAG order
+    Orch->>Redis: set node state TTL 3600s
+    Orch->>LLM: call LLM node
+    Orch->>UI: node_update status output error duration
     alt node failed
-      Orch->>PG: update execution -> failed
-      Orch->>UI: execution_failed
+      Orch->>PG: update execution failed
+      Orch->>UI: execution failed
       break
     end
   end
-  Orch->>PG: update execution -> completed (output_data)
-  Orch->>UI: execution_completed (final output)
+  Orch->>PG: update execution completed
+  Orch->>UI: execution completed final output
 ```
 
 ## Project structure
